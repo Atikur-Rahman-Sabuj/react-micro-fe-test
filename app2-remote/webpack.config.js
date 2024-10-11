@@ -4,34 +4,34 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {ModuleFederationPlugin} = require('webpack').container;
 const ExternalTemplatesRemotesPlugin = require('external-remotes-plugin');
 const deps = require("./package.json").dependencies;
-
+const { app2Module } = require("../appConfig");
 
 module.exports = {
     entry: path.join(__dirname, "src", "index.js"),
     mode: "development",
-    target: "web",
     output: {
         path: path.resolve(__dirname, "dist"),
     },
     plugins: [
         new ModuleFederationPlugin({
-            name: 'app1',
-            filename: 'remoteEntry.js',
-            remotes:{
-                app2:'app2@http://localhost:3002/remoteEntry.js',
+            name: app2Module.name,
+            filename: app2Module.fileName,
+            exposes:{
+                "./Comp": "./src/Comp",
+                "./CounterContext": "./src/CounterContext"
             },
             shared:{
                 'react':{
                     requiredVersion: deps.react,
                     import: 'react',
+                    shareKey: "react",
+                    shareScope: "default",
                     singleton: true,
-                    eager: true,
                 },
                 'react-dom':{
                     requiredVersion: deps['react-dom'],
                     import: 'react-dom',
                     singleton: true,
-                    eager: true,
                 },
             }
         }),
@@ -59,7 +59,7 @@ module.exports = {
         ],
     },
     devServer: {
-        static: path.join(__dirname, 'dist'),
-        port: 3000,
+        static: path.join(__dirname, "dist"),
+        port: app2Module.port,
     },
 };
